@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package test1;
+
+service AudioStreaming {
+    rpc GetAudio(Text) returns (stream Audio) {}
+}
+
+message Text {
+    string text = 1;
+}
+
+message Audio {
+    bytes audio = 1;
+}
+
