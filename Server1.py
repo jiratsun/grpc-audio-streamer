@@ -46,7 +46,7 @@ class Worker(Process):
 class AudioStreamingServicer(test1_pb2_grpc.AudioStreamingServicer):
     def __init__(self):
         "Initialize servicer"
-        self.result = Manager().dict()
+        self.manager = Manager()
         self.queue = Queue()
 
         for i in range(NUM_OF_WORKERS):
@@ -56,7 +56,7 @@ class AudioStreamingServicer(test1_pb2_grpc.AudioStreamingServicer):
 
     def GetAudio(self, request, context):
         "Stream audio"
-        self.result.clear() 
+        result = self.manager.dict()
         while not self.queue.empty():
             self.queue.get()
 
@@ -68,15 +68,15 @@ class AudioStreamingServicer(test1_pb2_grpc.AudioStreamingServicer):
         for i in range(length):
             "Insert word into workers' queue"
             word = lst[i]
-            self.queue.put([word, i, self.result])
+            self.queue.put([word, i, result])
 
         for i in range(length):
             "Yield audio in order"
-            while i not in self.result:
+            while i not in result:
                 "Wait for the ith file to finish processing"
                 time.sleep(0.05)
-
-            audio = p.from_file(folder + self.result[i] + format).raw_data
+           
+            audio = p.from_file(folder + result[i] + format).raw_data
             if i == 0:
                 audio = genHeader(sampleRate, bitsPerSample, channels) + audio
             
