@@ -7,14 +7,15 @@ import test1_pb2
 
 import time
 import pydub
+import ffmpy
 
 NUM_OF_WORKERS = 2
 files = ["num0", "num1", "num2", "num3", "num4", "num5", "num6", "num7", "num8", "num9"]
-folder = "recordings\\"
-format = ".wav"
+folder = "normalized\\"
+format = ".mp3"
 p = pydub.AudioSegment
 workers = []
-sampleRate = 24000
+sampleRate = 48000
 bitsPerSample = 16
 channels = 1
 delay = 2
@@ -30,6 +31,9 @@ class Worker(Process):
         "Insert index:file_name into result"
         index = int(word)
 
+        ff = ffmpy.FFmpeg(inputs={"recordings\\" + files[index] + ".wav": None},
+        outputs={folder + files[index] + format: ["-filter:a", "loudnorm=I=-20:TP=-1.5:LRA=11:measured_I=-23.54:measured_TP=-7.96:measured_LRA=0.00:measured_thresh=-34.17:linear=true", "-y"]})
+        ff.run()
         time.sleep(delay) #Delay
 
         result[i] = files[index]
@@ -57,9 +61,7 @@ class AudioStreamingServicer(test1_pb2_grpc.AudioStreamingServicer):
     def GetAudio(self, request, context):
         "Stream audio"
         result = self.manager.dict()
-        while not self.queue.empty():
-            self.queue.get()
-
+    
         text = request.text
 
         lst = list(text)

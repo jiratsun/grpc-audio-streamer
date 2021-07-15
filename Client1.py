@@ -19,7 +19,7 @@ def tts():
     text = request.args.get("text")
     req = test1_pb2.Text(text = text)
     
-    return Response(generator(req), mimetype = "audio/wav")
+    return Response(generator(req), mimetype = "audio/mpeg")
 
 if __name__ == "__main__":
     app.run(host = "0.0.0.0", port = 8000)
