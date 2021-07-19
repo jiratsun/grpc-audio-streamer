@@ -48,19 +48,16 @@ class Worker(Process):
                 pass
 
 class AudioStreamingServicer(test1_pb2_grpc.AudioStreamingServicer):
-    def __init__(self):
+    def __init__(self) -> None:
         "Initialize servicer"
-        self.manager = Manager()
-        self.queue = Queue()
-
-        for i in range(NUM_OF_WORKERS):
-            w = Worker(i, self.queue)
-            w.start()
-            workers.append(w)
+        super().__init__()
 
     def GetAudio(self, request, context):
         "Stream audio"
-        result = self.manager.dict()
+        global manager
+        global queue
+
+        result = manager.dict()
     
         text = request.text
 
@@ -70,7 +67,7 @@ class AudioStreamingServicer(test1_pb2_grpc.AudioStreamingServicer):
         for i in range(length):
             "Insert word into workers' queue"
             word = lst[i]
-            self.queue.put([word, i, result])
+            queue.put([word, i, result])
 
         for i in range(length):
             "Yield audio in order"
@@ -110,4 +107,11 @@ def serve():
     server.wait_for_termination()
 
 if __name__ == "__main__":
+    manager = Manager()
+    queue = Queue()
+    for i in range(NUM_OF_WORKERS):
+        w = Worker(i, queue)
+        w.start()
+        workers.append(w)
+
     serve()
