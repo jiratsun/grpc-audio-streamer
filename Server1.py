@@ -104,7 +104,15 @@ def serve():
     test1_pb2_grpc.add_AudioStreamingServicer_to_server(AudioStreamingServicer(), server)
     server.add_insecure_port("[::]:50051")
     server.start()
-    server.wait_for_termination()
+    while True:
+        try:
+            time.sleep(5)
+        except KeyboardInterrupt:
+            stop = server.stop(10)
+            stop.wait()
+            for w in workers:
+                w.terminate()
+            break   
 
 if __name__ == "__main__":
     manager = Manager()
